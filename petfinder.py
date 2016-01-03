@@ -104,8 +104,8 @@ def index():
         SELECT blob FROM pet
         WHERE last_seen >= (SELECT value FROM state WHERE key = 'last_refresh')
         AND rejected IS NULL
-        AND json_extract(blob, '$.shelterId') LIKE '{state_abbrev}%'
-    '''.format(**CONFIG))
+        AND json_extract(blob, '$.shelterId') LIKE ? || '%'
+    ''', (CONFIG['state_abbrev'],))
     for row in cursor:
         pet = json.loads(row[0])
 
