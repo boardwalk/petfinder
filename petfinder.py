@@ -7,7 +7,8 @@ import sqlite3
 
 app = flask.Flask(__name__)
 DATABASE_PATH = 'petfinder.db'
-CONFIG_PATH = 'petfinder.json'
+with open("petfinder.json") as f:
+    CONFIG = json.load(f)
 
 # petfinder spits out this gross "xml as json" stuff
 # this cleans it up a bit
@@ -40,7 +41,7 @@ def get_conn():
         conn.executescript('''
             CREATE TABLE pet (
                 pet_id INTEGER PRIMARY KEY,
-                blob TEXT NOT NULL CHECK(json_valid(blob) = 1),
+                blob TEXT NOT NULL CHECK (json_valid(blob) = 1),
                 created TEXT NOT NULL DEFAULT (DATETIME()),
                 last_seen TEXT NOT NULL DEFAULT (DATETIME()),
                 rejected TEXT
@@ -59,9 +60,7 @@ def close_conn(exn):
 
 @app.route('/refresh')
 def refresh():
-    with open(CONFIG_PATH) as f:
-        config = json.load(f)
-    pets = requests.get('http://api.petfinder.com/pet.find', params=config["params"]).json()
+    pets = requests.get('http://api.petfinder.com/pet.find', params=CONFIG['params']).json()
     pets = demangle(pets)['petfinder']['pets']
     def pet_to_params(pet):
         return int(pet['id']), json.dumps(pet)
@@ -105,13 +104,10 @@ def index():
         SELECT blob FROM pet
         WHERE last_seen >= (SELECT value FROM state WHERE key = 'last_refresh')
         AND rejected IS NULL
-    ''')
+        AND json_extract(blob, '$.shelterId') LIKE '{state_abbrev}%'
+    '''.format(**CONFIG))
     for row in cursor:
         pet = json.loads(row[0])
-
-        # filter out shelters outside texas
-        if not pet['shelterId'].startswith('TX'):
-            continue
 
         # filter out everything but large photos
         def large_photo(p):

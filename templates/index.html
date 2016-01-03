@@ -16,7 +16,7 @@
             </div>
             <div>
                 {{ pet['description'] }}
-                <a href="https://www.petfinder.com/petdetail/{{ pet['id'] }}">more</a>
+                <a href="https://www.petfinder.com/petdetail/{{ pet['id'] }}">More</a>
             </div>
             <a href="{{ url_for('reject', id=pet['id']) }}">Reject</a>
         </div>
