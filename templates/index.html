@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Petfinder</title>
+        <style>
+        </style>
+    </head>
+    <body>
+        {% for pet in pets %}
+        <div>
+            <h1>{{ pet['name'] }}</h1>
+            <div>
+                {% for photo in pet['media']['photos'] %}
+                <img src="{{ photo }}" style="width: 300px; height: auto">
+                {% endfor %}
+            </div>
+            <div>
+                {{ pet['description'] }}
+                <a href="https://www.petfinder.com/petdetail/{{ pet['id'] }}">more</a>
+            </div>
+            <a href="{{ url_for('reject', id=pet['id']) }}">Reject</a>
+        </div>
+        {% endfor %}
+        <a href="{{ url_for('refresh') }}">Refresh</a>
+    </body>
+</html>
